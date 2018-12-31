@@ -18,30 +18,27 @@ USER $NB_UID
 # Remove pyqt and qt pulled in for matplotlib since we're only ever going to
 # use notebook-friendly backends in these images
 RUN conda install --quiet --yes \
-    'conda-forge::blas=*=openblas' \
+    'conda-forge::blas=*=mkl' \
     'ipywidgets=7.2*' \
     'pandas=0.23*' \
     'numexpr=2.6*' \
     'matplotlib=2.2*' \
     'scipy=1.1*' \
     'seaborn=0.9*' \
-    'scikit-learn=0.20*' \
-    'scikit-image=0.14*' \
     'sympy=1.1*' \
-    'cython=0.28*' \
-    'patsy=0.5*' \
-    'statsmodels=0.9*' \
     'cloudpickle=0.5*' \
     'dill=0.2*' \
-    'numba=0.38*' \
     'bokeh=0.13*' \
-    'sqlalchemy=1.2*' \
     'hdf5=1.10*' \
     'h5py=2.7*' \
     'vincent=0.4.*' \
     'beautifulsoup4=4.6.*' \
-    'protobuf=3.*' \
-    'xlrd'  && \
+    'xlrd' \
+    'psi4=*=py36*' \
+    'psi4-rt=*=py36*' \
+    -c psi4 && \
+    # Test that Psi4 works
+    psi4 --test && \
     conda remove --quiet --yes --force qt pyqt && \
     conda clean -tipsy && \
     # Activate ipywidgets extension in the environment that runs the notebook server
@@ -56,11 +53,13 @@ RUN conda install --quiet --yes \
     rm -rf /home/$NB_USER/.cache/yarn && \
     rm -rf /home/$NB_USER/.node-gyp && \
     fix-permissions $CONDA_DIR && \
-    fix-permissions /home/$NB_USER
+    fix-permissions /home/$NB_USER && \
+    mkdir -p /home/$NB_USER/scratch
 
 # Import matplotlib the first time to build the font cache.
 ENV XDG_CACHE_HOME /home/$NB_USER/.cache/
 RUN MPLBACKEND=Agg python -c "import matplotlib.pyplot" && \
     fix-permissions /home/$NB_USER
+ENV PSI_SCRATCH /home/$NB_USER/scratch
 
 USER $NB_UID
