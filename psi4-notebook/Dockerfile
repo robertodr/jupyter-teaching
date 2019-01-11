@@ -56,6 +56,11 @@ RUN conda install --quiet --yes \
     fix-permissions /home/$NB_USER && \
     mkdir -p /home/$NB_USER/scratch
 
+# Configure Emacs
+COPY .spacemacs /home/$NB_USER
+RUN git clone --single-branch -b develop https://github.com/syl20bnr/spacemacs /home/$NB_USER/.emacs.d \
+      && emacs --batch -l /home/$NB_USER/.emacs.d/init.el --eval="(configuration-layer/update-packages t)"
+
 # Import matplotlib the first time to build the font cache.
 ENV XDG_CACHE_HOME /home/$NB_USER/.cache/
 RUN MPLBACKEND=Agg python -c "import matplotlib.pyplot" && \
